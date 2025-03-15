@@ -2,16 +2,18 @@ FROM python:3.13
 
 WORKDIR /src
 
+# Add UV
+COPY --from=ghcr.io/astral-sh/uv:0.6.6 /uv /uvx /bin/
+
 # done first so we can cache dependencies between code changes
-COPY Pipfile Pipfile.lock ./
-RUN pip install -U pipenv
-RUN pipenv install --system
+COPY . .
+RUN uv sync --frozen
+ENV PATH="/src/.venv/bin:$PATH"
+RUN ls -al
 
 RUN apt-get update && apt-get install -y nginx && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY etc/nginx.conf /etc/nginx/sites-available/default
-
-COPY . .
 
 RUN python manage.py collectstatic --noinput
 

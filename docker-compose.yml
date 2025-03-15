@@ -8,6 +8,7 @@ services:
     environment:
       - DB_FILE=/data/db.sqlite3
       - PW_SERVER=ws://pw:3000/
+      - PATH=/src/.venv/bin:$PATH
     env_file:
       - .env
     links:
@@ -15,6 +16,15 @@ services:
     depends_on:
       - pw
     command: daphne -b 0.0.0.0 -p 8000 byos_django.asgi:application
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /src
+          ignore:
+            - .venv/
+        - action: rebuild
+          path: uv.lock
   pw:
     image: mcr.microsoft.com/playwright:v1.50.0-noble
     container_name: pw
@@ -34,6 +44,10 @@ services:
     depends_on:
       - app
     command: nginx -g 'daemon off;'
-
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./etc/nginx.conf
+          target: /etc/nginx/sites-available/default
 volumes:
   pw_home:
