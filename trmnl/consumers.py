@@ -1,3 +1,4 @@
+import logging
 import base64
 import json
 import shutil
@@ -10,13 +11,22 @@ from wand.image import Image
 
 from byos_django import settings
 
+logger = logging.getLogger(__name__)
+
 
 class PreviewConsumer(AsyncWebsocketConsumer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pw = None
+        self.browser = None
+        self.page = None
+
     async def connect(self):
         if not self.scope["user"].is_superuser:
             await self.close(reason="Unauthorized")
-        self.pw_manager = async_playwright()
-        self.pw = await self.pw_manager.__aenter__()
+            return
+        pw_manager = async_playwright()
+        self.pw = await pw_manager.start()
         if settings.PW_SERVER:
             self.browser = await self.pw.firefox.connect(ws_endpoint=settings.PW_SERVER)
         else:
@@ -24,17 +34,19 @@ class PreviewConsumer(AsyncWebsocketConsumer):
                 headless=True,
                 args=["--window-size=800,480", "--disable-web-security"],
             )
-        self.page = await self.browser.new_page()
-        await self.page.set_viewport_size({"width": 800, "height": 480})
         await self.accept()
+        logger.info(f"Connected: {self.scope['user']}")
 
     async def disconnect(self, close_code):
-        await self.page.close()
+        if self.page:
+            await self.page.close()
+        if self.browser:
+            await self.browser.close()
+        if self.pw:
+            await self.pw.stop()
         self.page = None
-        await self.browser.close()
+        self.browser = None
         self.pw = None
-        await self.pw_manager.__aexit__()
-        pass
 
     async def receive(self, text_data=None, bytes_data=None) -> None:
         text_data_json = json.loads(text_data)
@@ -43,6 +55,9 @@ class PreviewConsumer(AsyncWebsocketConsumer):
         )
 
     async def generate(self, html):
+        if not self.page:
+            self.page = await self.browser.new_page()
+            await self.page.set_viewport_size({"width": 800, "height": 480})
         start_time = time.time()
         if not html:
             return {"content": ""}
