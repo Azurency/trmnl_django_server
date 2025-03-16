@@ -94,7 +94,10 @@ class Screen(models.Model):
             page = browser.new_page()
             page.set_viewport_size({"width": 800, "height": 480})
 
-            page.set_content(self.html)
+            # Render template with Django template engine
+            template = get_template("screen.html")
+            html = template.render({"content": mark_safe(self.html)})
+            page.set_content(html)
             page.evaluate(
                 'document.getElementsByTagName("html")[0].style.overflow = "hidden";'
                 'document.getElementsByTagName("body")[0].style.overflow = "hidden";'

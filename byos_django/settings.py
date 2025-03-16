@@ -56,7 +56,10 @@ ROOT_URLCONF = "byos_django.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [
+            BASE_DIR / "templates",  
+            os.path.join(BASE_DIR, "trmnl", "templates"),
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -139,3 +142,42 @@ if not CSRF_TRUSTED_ORIGINS or CSRF_TRUSTED_ORIGINS == [""]:
     for host in ALLOWED_HOSTS:
         CSRF_TRUSTED_ORIGINS.append(f"http://{host}")
         CSRF_TRUSTED_ORIGINS.append(f"http://{host}:8000")
+
+DEBUG = True
+LOGGING_VERBOSE_BASE = os.getenv("LOGGING_VERBOSE_BASE", "INFO")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "base": {
+            "format": (
+                "%(asctime)s [%(name)s] [%(levelname)s] "
+                + "filename=%(filename)s lineno=%(lineno)s "
+                + "funcname=%(funcName)s - %(message)s"
+            ),
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "base",
+        },
+        # "file" : {
+        #     "class": "logging.FileHandler",
+        #     "filename": "/code/web/debug.log",
+        #     "formatter": "base",
+        #     "mode": "w",
+        # }
+    },
+    "loggers": {
+        "": {  # root logger
+            "level": LOGGING_VERBOSE_BASE,
+            "handlers": ["console"],
+        },
+        # "daphne": {
+        #     "level": "DEBUG",
+        # },
+    },
+}
