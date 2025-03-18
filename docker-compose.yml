@@ -4,27 +4,25 @@ services:
       context: .
     container_name: app
     volumes:
+      - .:/src
+      - venv-volume:/src/.venv
       - ./data:/data
     environment:
       - DB_FILE=/data/db.sqlite3
       - PW_SERVER=ws://pw:3000/
       - PATH=/src/.venv/bin:$PATH
+    networks:
+      - main
     env_file:
       - .env
     links:
       - pw
+      - redis
     depends_on:
       - pw
-    command: daphne -b 0.0.0.0 -p 8000 byos_django.asgi:application
-    develop:
-      watch:
-        - action: sync
-          path: .
-          target: /src
-          ignore:
-            - .venv/
-        - action: rebuild
-          path: uv.lock
+      - redis
+    # command: daphne -b 0.0.0.0 -p 8000 byos_django.asgi:application
+    command: python manage.py runserver 0.0.0.0:8000
   pw:
     image: mcr.microsoft.com/playwright:v1.50.0-noble
     container_name: pw
@@ -32,7 +30,19 @@ services:
     init: true
     volumes:
       - pw_home:/home/pwuser
+    networks:
+      - main
     command: npx -y playwright@1.50.0 run-server --port 3000 --host 0.0.0.0
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - main
+    working_dir: /data
   nginx:
     build:
       context: .
@@ -43,6 +53,8 @@ services:
       - app
     depends_on:
       - app
+    networks:
+      - main
     command: nginx -g 'daemon off;'
     develop:
       watch:
@@ -51,3 +63,9 @@ services:
           target: /etc/nginx/sites-available/default
 volumes:
   pw_home:
+  venv-volume:
+  redis-data:
+
+networks:
+  main:
+    driver: bridge

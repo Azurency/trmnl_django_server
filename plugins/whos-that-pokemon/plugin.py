@@ -2,30 +2,19 @@ import random
 import requests
 from typing import Dict, Any
 
-
-
-class BasePlugin:
-    def __init__(self, config):
-        self.config = config
-
-    def generate_html(self):
-        raise NotImplementedError
-
-    def __str__(self):
-        return f"<Plugin {self.__class__.__name__}>"
-
-
-class StaticHTMLPlugin(BasePlugin):
-    def generate_html(self):
-        return self.config["html"]
+from plugins.base import BasePlugin
+from django.template.loader import get_template
 
 
 class PokemonPlugin(BasePlugin):
+
     __MAX_POKEMON_ID = 1025
 
     def generate_html(self):
-        return f"<h1>Pokemon Plugin</h1><p>{self.config['pokemon']}</p>"
-    
+        template = get_template("whos-that-pokemon/full.html")
+        html = template.render({"pokemon_data": self.fetch_random_pokemon()})
+        return html
+
     @classmethod
     def fetch_random_pokemon(cls) -> Dict[str, Any]:
         """Fetch random Pokemon data from PokeAPI."""
@@ -35,18 +24,18 @@ class PokemonPlugin(BasePlugin):
 
         types = [t["type"]["name"] for t in pokemon_data["types"]]
         abilities = [a["ability"]["name"] for a in pokemon_data["abilities"]]
-        
+
         species_url = pokemon_data["species"]["url"]
         species_response = requests.get(species_url)
         species_data = species_response.json()
-        
+
         for genus in species_data["genera"]:
             if genus["language"]["name"] == "en":
                 species_name = genus["genus"]
                 break
         else:
             species_name = species_data["name"]
-        
+
         return {
             "name": pokemon_data["name"].title(),
             "types": ", ".join(type.title() for type in types),
@@ -54,5 +43,7 @@ class PokemonPlugin(BasePlugin):
             "height": f"{pokemon_data["height"] / 10} m",  # Convert to meters
             "weight": f"{pokemon_data["weight"] / 10} kg",  # Convert to kilograms
             "abilities": ", ".join(ability.title() for ability in abilities),
-            "artwork": pokemon_data["sprites"]["other"]["official-artwork"]["front_default"]
+            "artwork": pokemon_data["sprites"]["other"]["official-artwork"][
+                "front_default"
+            ],
         }

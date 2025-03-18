@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -9,12 +10,15 @@ from django.views.decorators.csrf import csrf_exempt
 from .middleware import require_api_key
 from .models import Device, Screen
 
+logger = logging.getLogger(__name__)
+
 
 def index(request):
     return redirect("admin:index")
 
 
 def setup(request):
+    logger.info('setup')
     # get mac from headers
     mac = request.headers.get("ID", None)
     if not mac:
@@ -71,9 +75,11 @@ def setup(request):
 
 
 def display(request):
+    logger.info(f'display {request.body}')
     # get mac from headers
     api_key = request.headers.get("Access-Token", None)
     mac = request.headers.get("ID", None)
+    logger.info("ICI OUI ALLO")
     if not api_key or not mac:
         return JsonResponse(
             {
@@ -84,6 +90,7 @@ def display(request):
             status=200,
         )
     # get device from database
+    logger.info(f"api_key: {api_key} and mac: {mac}")
     device = Device.objects.filter(api_key=api_key, mac_address=mac).first()
     if not device:
         return JsonResponse(
@@ -117,11 +124,14 @@ def display(request):
         image_url = request.build_absolute_uri("/static/images/rover.bmp")
         filename = "rover.bmp"
     elif request.GET.get("base64"):
+        logger.info('base64')
         image_url = screen.image_as_base64
         filename = screen.image_as_url_for_device_filename
     else:
+        logger.info('not base64')
         image_url = request.build_absolute_uri(screen.image_as_url_for_device)
         filename = screen.image_as_url_for_device_filename
+    logger.info(f"image_url: {image_url} and filename: {filename}")
 
     return JsonResponse(
         {
@@ -140,6 +150,7 @@ def display(request):
 
 @csrf_exempt
 def log(request):
+    logger.info('log')
     # get Acesss-Token
     api_key = request.headers.get("Access-Token", None)
     if not api_key:
@@ -178,6 +189,7 @@ def log(request):
 
 
 def device_image_view(request, filename):
+    logger.info('device_image_view')
     device_id, screen_id = filename.replace(".bmp", "").split("-")
     # get api_key from params
     api_key = request.GET.get("api_key", None)
@@ -206,6 +218,7 @@ def device_image_view(request, filename):
 @csrf_exempt
 @require_api_key
 def generate_screen(request):
+    logger.info('generate_screen')
     # get JSON body
     try:
         data = json.loads(request.body.decode("utf-8"))
@@ -217,6 +230,7 @@ def generate_screen(request):
             },
             status=400,
         )
+    logger.info(request.body)
 
     device = Device.objects.filter(
         user=request.api_key.user, friendly_id=data["device"].upper()
@@ -256,6 +270,7 @@ def generate_screen(request):
 
 @login_required(login_url="/admin/login/")
 def preview(request):
+    logger.info('preview')
     return render(
         request,
         "live_preview.html",

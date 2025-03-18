@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "trmnl.apps.TrmnlConfig",
+    "scheduler",
+    "trmnl",
+    "plugins",
 ]
 
 MIDDLEWARE = [
@@ -59,6 +61,7 @@ TEMPLATES = [
         "DIRS": [
             BASE_DIR / "templates",  
             os.path.join(BASE_DIR, "trmnl", "templates"),
+            os.path.join(BASE_DIR, "plugins", "templates"),
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -142,6 +145,42 @@ if not CSRF_TRUSTED_ORIGINS or CSRF_TRUSTED_ORIGINS == [""]:
     for host in ALLOWED_HOSTS:
         CSRF_TRUSTED_ORIGINS.append(f"http://{host}")
         CSRF_TRUSTED_ORIGINS.append(f"http://{host}:8000")
+
+# Scheduler 
+# SCHEDULER_QUEUES = {
+#     'default': {
+#         'HOST': 'redis',
+#         'PORT': 6379,
+#         'DB': 0,
+#         'DEFAULT_TIMEOUT': 360,
+#         'CLIENT_KWARGS': {  # Eventual additional Redis connection arguments
+#             'ssl_cert_reqs': None,
+#         },
+#         'TOKEN_VALIDATION_METHOD': None,  # Method to validate auth-header
+#     }
+# }
+# SCHEDULER_CONFIG = {
+#     'EXECUTIONS_IN_PAGE': 20,
+#     'DEFAULT_RESULT_TTL': 500,
+#     'DEFAULT_TIMEOUT': 300,  # 5 minutes
+#     'SCHEDULER_INTERVAL': 10,  # 10 seconds
+#     'BROKER': 'redis', # 
+# }
+SCHEDULER_CONFIG = {
+    'EXECUTIONS_IN_PAGE': 20,
+    'DEFAULT_RESULT_TTL': 500,
+    'DEFAULT_TIMEOUT': 300,  # 5 minutes
+    'SCHEDULER_INTERVAL': 10,  # 10 seconds
+}
+SCHEDULER_QUEUES = {
+    'default': {
+        'HOST': 'redis',
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT_TIMEOUT': 360,
+    },
+}
+
 
 DEBUG = True
 LOGGING_VERBOSE_BASE = os.getenv("LOGGING_VERBOSE_BASE", "INFO")

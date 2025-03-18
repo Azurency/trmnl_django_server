@@ -4,13 +4,20 @@ import re
 import shutil
 import string
 import tempfile
+import logging
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.template.loader import get_template
+from django.template import Template
+from django.utils.safestring import mark_safe
 from django.utils import timezone
 from playwright.sync_api import sync_playwright
 from wand.image import Image
+
+
+logger = logging.getLogger(__name__)
 
 
 class Device(models.Model):
@@ -54,6 +61,13 @@ class Device(models.Model):
         super().save(*args, **kwargs)
 
     def get_screen(self, update_last_seen=False):
+        # TODO : playlist
+        # For now metro :
+        # latest = self.screen_set.order_by("-created_at").first().delete()
+        # from plugins.models import Plugin
+        # idfm_plugin = Plugin.objects.filter(name="IDFM Métro").first()
+        # if idfm_plugin:
+        #     idfm_plugin.create_screen(self)
         screen = self.screen_set.order_by("-created_at").first()
         if update_last_seen:
             self.last_seen_at = timezone.now()
@@ -97,6 +111,7 @@ class Screen(models.Model):
             # Render template with Django template engine
             template = get_template("screen.html")
             html = template.render({"content": mark_safe(self.html)})
+            logger.info(html)
             page.set_content(html)
             page.evaluate(
                 'document.getElementsByTagName("html")[0].style.overflow = "hidden";'
