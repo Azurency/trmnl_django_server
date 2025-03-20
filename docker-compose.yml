@@ -2,47 +2,72 @@ services:
   app:
     build:
       context: .
-    container_name: app
+    container_name: trmnl_django_app
     volumes:
+      - .:/src
+      - venv-volume:/src/.venv
       - ./data:/data
     environment:
       - DB_FILE=/data/db.sqlite3
       - PW_SERVER=ws://pw:3000/
       - PATH=/src/.venv/bin:$PATH
+    networks:
+      - main
     env_file:
       - .env
-    links:
-      - pw
     depends_on:
       - pw
-    command: daphne -b 0.0.0.0 -p 8000 byos_django.asgi:application
-    develop:
-      watch:
-        - action: sync
-          path: .
-          target: /src
-          ignore:
-            - .venv/
-        - action: rebuild
-          path: uv.lock
+      - redis
+    # command: daphne -b 0.0.0.0 -p 8000 byos_django.asgi:application
+    command: python manage.py runserver 0.0.0.0:8000
+  scheduler:
+    build:
+      context: .
+    container_name: trmnl_django_scheduler
+    volumes:
+      - .:/src
+      - venv-volume:/src/.venv
+      - ./data:/data
+    environment:
+      - DB_FILE=/data/db.sqlite3
+      - PW_SERVER=ws://pw:3000/
+      - PATH=/src/.venv/bin:$PATH
+    networks:
+      - main
+    env_file:
+      - .env
+    depends_on:
+      - pw
+      - redis
+    command: python manage.py rqworker default
   pw:
     image: mcr.microsoft.com/playwright:v1.50.0-noble
-    container_name: pw
+    container_name: trmnl_django_pw
     user: pwuser
     init: true
     volumes:
       - pw_home:/home/pwuser
+    networks:
+      - main
     command: npx -y playwright@1.50.0 run-server --port 3000 --host 0.0.0.0
+  redis:
+    image: redis:7
+    container_name: redis
+    volumes:
+      - redis-data:/data
+    networks:
+      - main
+    working_dir: /data
   nginx:
     build:
       context: .
-    container_name: nginx
+    container_name: trmnl_django_nginx
     ports:
       - "8000:80"
-    links:
-      - app
     depends_on:
       - app
+    networks:
+      - main
     command: nginx -g 'daemon off;'
     develop:
       watch:
@@ -51,3 +76,9 @@ services:
           target: /etc/nginx/sites-available/default
 volumes:
   pw_home:
+  venv-volume:
+  redis-data:
+
+networks:
+  main:
+    driver: bridge
