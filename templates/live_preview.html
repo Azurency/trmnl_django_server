@@ -24,6 +24,13 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
 <script>
+    function debounce(func, timeout = 300){
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => { func.apply(this, args); }, timeout);
+        };
+    }
     document.addEventListener('DOMContentLoaded', function () {
         window.default_template = atob(`{{ initial_content|safe }}`);
         window.render_content = window.default_template;
@@ -35,6 +42,8 @@
                 previewSocket.send(JSON.stringify({html: window.render_content}));
             }
         }
+
+        renderDebounced = debounce(renderTemplate, 1000);
 
         require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs'}});
         require(["vs/editor/editor.main"], () => {
@@ -50,11 +59,11 @@
                     clearTimeout(window.send_timeout);
                 }
                 window.send_timeout = setTimeout(() => {
-                    renderTemplate();
+                    renderDebounced();
                 }, 300);
             });
 
-            renderTemplate();
+            renderDebounced();
         });
 
         function startSocket() {
