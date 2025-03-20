@@ -1,6 +1,6 @@
-import logging
 import base64
 import json
+import logging
 import shutil
 import tempfile
 import time
@@ -73,13 +73,8 @@ class PreviewConsumer(AsyncWebsocketConsumer):
         await self.page.screenshot(path=f"/{folder}/screen.png")
 
         with Image(filename=f"/{folder}/screen.png") as img:
-            img.posterize(2, dither="floyd_steinberg")
-            amap = Image(width=img.width, height=img.height, pseudo="pattern:gray50")
-            amap.composite(img, 0, 0)
-            img = amap
-            img.quantize(2, colorspace_type="gray")
-            img.depth = 1
-            img.strip()
+            img.transform_colorspace('gray')
+            img.quantize(2, colorspace_type='gray', dither=True)
             img.save(filename=f"bmp3:/{folder}/screen.bmp")
 
         with open(f"/{folder}/screen.bmp", "rb") as f:

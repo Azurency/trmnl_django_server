@@ -106,13 +106,8 @@ class Screen(models.Model):
             browser.close()
 
         with Image(filename=f"/{folder}/screen.png") as img:
-            img.posterize(2, dither="floyd_steinberg")
-            amap = Image(width=img.width, height=img.height, pseudo="pattern:gray50")
-            amap.composite(img, 0, 0)
-            img = amap
-            img.quantize(2, colorspace_type="gray")
-            img.depth = 1
-            img.strip()
+            img.transform_colorspace('gray')
+            img.quantize(2, colorspace_type='gray', dither=True)
             img.save(filename=f"bmp3:/{folder}/screen.bmp")
 
         with open(f"/{folder}/screen.bmp", "rb") as f:
