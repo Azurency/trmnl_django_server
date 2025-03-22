@@ -1,0 +1,61 @@
+<style>
+    .rounded-full {
+        border-radius: 100%;
+    }
+</style>
+<div class="layout layout--row layout--stretch-x layout--stretch-y">
+  {% for line in lines %}
+    <div
+        class="flex flex--col flex--left flex--top {% if forloop.counter != 1 %}border--v-3 pl--4{% endif %}">
+      <div class="flex flex--center-y flex--row">
+        <div
+            class="bg--gray-1 w--10 h--10 rounded-full flex flex--center-x flex--center-y text--white m-0 p-0">
+          <span class="value value--small value--tnums m-0 p-0">{{ line.code }}</span>
+        </div>
+        <div class="flex gap--small flex--bottom">
+          <span class="title">{{ line.name }}</span>
+          <span class="label label--small label--underline">depuis {{ line.stop_name }}</span>
+        </div>
+      </div>
+      <div class="grid grid--cols-2">
+        {% for stop in line.next_stops %}
+          {% if forloop.first %}
+            <div class="item border--h-6 py--6 col--span-2">
+              <div class="meta">
+                <span class="index">{{ forloop.counter }}</span>
+              </div>
+              <div class="content">
+                <span
+                    class="value value--xlarge value--tnums">{{ stop.expected_arrival_time }}</span>
+                <div class="flex gap--small">
+                  <span class="label label--inverted">{{ line.destination }}</span>
+                  <span class="label label--underline">{% if stop.status == "onTime" %}
+                    À l'heure{% else %}!! Retardé :'( !!{% endif %}</span>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="item py--2">
+              <div class="meta">
+                <span class="index">{{ forloop.counter }}</span>
+              </div>
+              <div class="content">
+                <span class="value value--tnums">{{ stop.expected_arrival_time }}</span>
+                <span class="label label--outline">{{ line.destination }}</span>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+  {% if lines|length == 0 %}
+    <img class="image-dither w--80" src="https://www.ratp.fr/themes/ratp/logo.svg">
+  {% endif %}
+</div>
+
+<div class="title_bar">
+  <img class="image"
+       src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Paris_transit_icons_-_M%C3%A9tro.svg/250px-Paris_transit_icons_-_M%C3%A9tro.svg.png">
+  <span class="title">Prochains passages du Métro</span>
+</div>

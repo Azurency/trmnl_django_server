@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "scheduler",
     "trmnl",
+    "plugins",
 ]
 
 MIDDLEWARE = [
@@ -58,8 +59,9 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            BASE_DIR / "templates",  
+            BASE_DIR / "templates",
             os.path.join(BASE_DIR, "trmnl", "templates"),
+            os.path.join(BASE_DIR, "plugins", "templates"),
         ],
         "APP_DIRS": True,
         "OPTIONS": {
