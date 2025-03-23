@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -8,6 +9,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .middleware import require_api_key
 from .models import Device, Screen
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):

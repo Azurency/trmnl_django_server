@@ -1,9 +1,13 @@
 import json
+import logging
 
 from django.contrib import admin, messages
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 
-from .models import APIKey, Device, DeviceLog, Screen
+from .models import APIKey, Device, DeviceLog, Playlist, PlaylistItem, Screen
+
+logger = logging.getLogger("trmnl")
 
 
 class DeviceAdmin(admin.ModelAdmin):
@@ -99,7 +103,32 @@ class APIKeyAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+class PlaylistAdmin(admin.ModelAdmin):
+    list_display = (
+        "uuid",
+        "device",
+        "weekday_str",
+        "active_from",
+        "active_to",
+        "is_active",
+    )
+
+    def weekday_str(self, obj):
+        return obj.weekdays.to_str_list()
+
+    weekday_str.short_description = _("Weekdays")
+
+    readonly_fields = ("uuid", "created_at", "updated_at")
+    search_fields = ("uuid", "device__friendly_id", "device__device_name")
+
+
+class PlaylistItemAdmin(admin.ModelAdmin):
+    list_display = ("uuid", "playlist", "order", "plugin", "last_displayed_at")
+
+
 admin.site.register(Device, DeviceAdmin)
 admin.site.register(DeviceLog, DeviceLogAdmin)
 admin.site.register(Screen, ScreenAdmin)
 admin.site.register(APIKey, APIKeyAdmin)
+admin.site.register(Playlist, PlaylistAdmin)
+admin.site.register(PlaylistItem, PlaylistItemAdmin)

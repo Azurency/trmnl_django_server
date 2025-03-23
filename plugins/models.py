@@ -2,12 +2,14 @@ import importlib
 import inspect
 import logging
 import sys
+import uuid
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from scheduler import job
 
 from trmnl.models import Screen
+from utils.model_utils import TimeStampedModel
 
 from .utils import get_full_class_path
 
@@ -20,11 +22,14 @@ plugin_choices = [
 ]
 
 
-# Plugin models that store reference to a plugin class. For instance a plugin named Pokemon Plugin with a description that
-# store the reference to the PokemonPlugin class in whos-that-pokemon.plugin.PokemonPlugin. Then to use the plugin, we can
-# instantiate the PokemonPlugin class and call the generate_html method to get the HTML content.
-class Plugin(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+class Plugin(TimeStampedModel):
+    uuid = models.UUIDField(
+        verbose_name=_("Public identifier"),
+        primary_key=True,
+        editable=False,
+        default=uuid.uuid4,
+    )
+    name = models.CharField(max_length=255)
     description = models.TextField()
     recipe = models.CharField(
         verbose_name=_("Recipe"),
