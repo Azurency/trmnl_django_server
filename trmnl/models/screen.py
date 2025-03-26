@@ -7,6 +7,7 @@ from django.conf import settings
 from django.db import models
 from django.template.loader import get_template
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 from playwright.sync_api import sync_playwright
 from wand.image import Image
 
@@ -21,6 +22,31 @@ class Screen(TimeStampedModel):
     screen = models.BinaryField()
     created_at = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     generated = models.BooleanField(default=False)
+    playlist_item = models.ForeignKey(
+        "trmnl.PlaylistItem",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="screens",
+    )
+
+    class Meta:
+        verbose_name = _("Screen")
+        verbose_name_plural = _("Screens")
+        ordering = ["-created_at", "device"]
+
+    def __str__(self):
+        return f"Screen (# {self.id}) for {self.device}"
+
+    def __repr__(self):
+        return f"<Screen #{self.id} - for {self.device}>"
+
+    @property
+    def display_duration(self):
+        """How long (in seconds) the screen should be displayed for"""
+        if not self.playlist_item:
+            return self.device.refresh_rate
+        return self.playlist_item.duration
 
     def generate_screen(self):
         # get random file name

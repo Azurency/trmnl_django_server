@@ -116,6 +116,8 @@ def display(request):
 
     # get latest screen, or rover if no screen
     screen = device.get_screen(update_last_seen=True)
+    device.schedule_next_screen()
+    refresh_rate = screen.display_duration if screen else device.refresh_rate
     if not screen:
         image_url = request.build_absolute_uri("/static/images/rover.bmp")
         filename = "rover.bmp"
@@ -131,7 +133,7 @@ def display(request):
             "status": 0,
             "image_url": image_url,
             "filename": filename,
-            "refresh_rate": f"{device.refresh_rate}",
+            "refresh_rate": f"{refresh_rate}",
             "reset_firmware": False,
             "update_firmware": False,
             "firmware_url": None,

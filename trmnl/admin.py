@@ -56,8 +56,15 @@ class ScreenAdmin(admin.ModelAdmin):
     list_display = ("device", "created_at", "generated")
     list_filter = ("device", "created_at", "generated")
     search_fields = ("device", "html")
-    readonly_fields = ("created_at", "generated", "embed_image")
-    fields = ("device", "created_at", "generated", "html", "embed_image")
+    readonly_fields = ("created_at", "generated", "embed_image", "playlist_item")
+    fields = (
+        "device",
+        "created_at",
+        "generated",
+        "html",
+        "embed_image",
+        "playlist_item",
+    )
     actions = ["generate"]
 
     def embed_image(self, obj=None):
@@ -70,8 +77,8 @@ class ScreenAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=...):
         if obj and obj.generated:
-            return ["created_at", "generated", "html", "embed_image"]
-        return ["created_at", "generated", "embed_image"]
+            return ["created_at", "generated", "html", "embed_image", "playlist_item"]
+        return ["created_at", "generated", "embed_image", "playlist_item"]
 
     def generate(self, request, queryset):
         objs = queryset.filter(generated=False)
@@ -106,6 +113,7 @@ class APIKeyAdmin(admin.ModelAdmin):
 class PlaylistAdmin(admin.ModelAdmin):
     list_display = (
         "uuid",
+        "name",
         "device",
         "weekday_str",
         "active_from",

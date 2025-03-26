@@ -57,9 +57,16 @@ class Plugin(TimeStampedModel):
     def generate_html(self):
         return self.get_recipe().generate_html()
 
-    def create_screen(self, device):
+    def create_screen(self, device, **kwargs):
+        """
+        Create a screen for the device using the plugin recipe.
+        :param device: Device
+        :param kwargs: Additional kwargs to pass to the Screen object
+        :return: Screen
+        """
         plugin_instance = self.get_recipe()
         html = plugin_instance.generate_html()
-        screen = Screen.objects.create(device=device, html=html)
+        screen = Screen.objects.create(device=device, html=html, **kwargs)
         screen.generate_screen()
+        return screen
 

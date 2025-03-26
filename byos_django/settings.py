@@ -146,6 +146,10 @@ if not CSRF_TRUSTED_ORIGINS or CSRF_TRUSTED_ORIGINS == [""]:
         CSRF_TRUSTED_ORIGINS.append(f"http://{host}")
         CSRF_TRUSTED_ORIGINS.append(f"http://{host}:8000")
 
+SCREEN_REFRESH_SECONDS_BEFORE_EXPIRY = os.environ.get(
+    "SCREEN_REFRESH_SECONDS_BEFORE_EXPIRY", 10
+)
+
 # Scheduler
 # SCHEDULER_QUEUES = {
 #     'default': {
