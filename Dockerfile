@@ -11,9 +11,9 @@ RUN uv sync --frozen
 ENV PATH="/src/.venv/bin:$PATH"
 RUN ls -al
 
-RUN apt-get update && apt-get install -y nginx && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-COPY etc/nginx.conf /etc/nginx/sites-available/default
+#RUN apt-get update && apt-get install -y nginx && apt-get clean && rm -rf /var/lib/apt/lists/*
+#
+#COPY etc/nginx.conf /etc/nginx/sites-available/default
 
 RUN python manage.py collectstatic --noinput
 

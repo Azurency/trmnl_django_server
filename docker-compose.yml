@@ -1,9 +1,17 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "15m"
+    max-file: "3"
+
 services:
   app:
+    image: trmnl_app:latest
     build:
       context: .
     container_name: trmnl_django_app
     volumes:
+      - trmnl-django-static:/src/static
       - .:/src
       - venv-volume:/src/.venv
       - ./data:/data
@@ -20,12 +28,9 @@ services:
       - redis
     # command: daphne -b 0.0.0.0 -p 8000 byos_django.asgi:application
     command: python manage.py runserver 0.0.0.0:8000
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    logging: *default-logging
   scheduler:
+    image: trmnl_app:latest
     build:
       context: .
     container_name: trmnl_django_scheduler
@@ -45,11 +50,7 @@ services:
       - pw
       - redis
     command: python manage.py rqworker default
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    logging: *default-logging
   pw:
     image: mcr.microsoft.com/playwright:v1.50.0-noble
     container_name: trmnl_django_pw
@@ -60,11 +61,7 @@ services:
     networks:
       - main
     command: npx -y playwright@1.50.0 run-server --port 3000 --host 0.0.0.0
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    logging: *default-logging
   redis:
     image: redis:7
     container_name: redis
@@ -73,15 +70,13 @@ services:
     networks:
       - main
     working_dir: /data
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    logging: *default-logging
   nginx:
-    build:
-      context: .
+    image: nginx:1.27
     container_name: trmnl_django_nginx
+    volumes:
+      - trmnl-django-static:/src/static
+      - ./etc/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "8000:80"
     depends_on:
@@ -93,16 +88,13 @@ services:
       watch:
         - action: sync+restart
           path: ./etc/nginx.conf
-          target: /etc/nginx/sites-available/default
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+          target: /etc/nginx/nginx.conf
+    logging: *default-logging
 volumes:
   pw_home:
   venv-volume:
   redis-data:
+  trmnl-django-static:
 
 networks:
   main:
