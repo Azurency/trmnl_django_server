@@ -20,6 +20,11 @@ services:
       - redis
     # command: daphne -b 0.0.0.0 -p 8000 byos_django.asgi:application
     command: python manage.py runserver 0.0.0.0:8000
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   scheduler:
     build:
       context: .
@@ -40,6 +45,11 @@ services:
       - pw
       - redis
     command: python manage.py rqworker default
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   pw:
     image: mcr.microsoft.com/playwright:v1.50.0-noble
     container_name: trmnl_django_pw
@@ -50,6 +60,11 @@ services:
     networks:
       - main
     command: npx -y playwright@1.50.0 run-server --port 3000 --host 0.0.0.0
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   redis:
     image: redis:7
     container_name: redis
@@ -58,6 +73,11 @@ services:
     networks:
       - main
     working_dir: /data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   nginx:
     build:
       context: .
@@ -74,6 +94,11 @@ services:
         - action: sync+restart
           path: ./etc/nginx.conf
           target: /etc/nginx/sites-available/default
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 volumes:
   pw_home:
   venv-volume:
