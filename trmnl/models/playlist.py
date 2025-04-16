@@ -29,7 +29,7 @@ class Playlist(TimeStampedModel):
     is_active = models.BooleanField(
         verbose_name=_("Is active"), default=True, blank=True
     )
-    weekdays = WeekdaysField(default=0, null=False, blank=False)
+    weekdays = WeekdaysField(default=["0"], null=False, blank=False)
     active_from = models.TimeField(verbose_name=_("Active from"), blank=True, null=True)
     active_to = models.TimeField(verbose_name=_("Active to"), blank=True, null=True)
     refresh_interval = models.PositiveIntegerField(
