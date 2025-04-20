@@ -77,6 +77,7 @@ class Screen(TimeStampedModel):
         with Image(filename=f"/{folder}/screen.png") as img:
             img.transform_colorspace("gray")
             img.quantize(2, colorspace_type="gray", dither=True)
+            img.type = "grayscale"
             img.save(filename=f"bmp3:/{folder}/screen.bmp")
 
         with open(f"/{folder}/screen.bmp", "rb") as f:
