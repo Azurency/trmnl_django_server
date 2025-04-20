@@ -1,4 +1,5 @@
 import base64
+import datetime
 import logging
 import shutil
 import tempfile
@@ -6,9 +7,11 @@ import tempfile
 from django.conf import settings
 from django.db import models
 from django.template.loader import get_template
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from playwright.sync_api import sync_playwright
+from scheduler import job
 from wand.image import Image
 
 from utils.model_utils import TimeStampedModel
@@ -100,3 +103,17 @@ class Screen(TimeStampedModel):
     @property
     def image_as_url_for_device_filename(self):
         return f"{self.device.friendly_id}-{self.id}.bmp"
+
+
+################
+## Screen Job ##
+################
+
+
+@job
+def delete_old_screens():
+    """Delete screens older than 1 day"""
+    now = timezone.now()
+    cutoff = now - datetime.timedelta(days=1)
+    Screen.objects.filter(created_at__lt=cutoff).delete()
+    logger.info(f"Deleted screens older than {cutoff}")
